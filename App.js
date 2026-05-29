@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import MQTTService from './src/services/mqttService';
 import StatusModal from './src/components/StatusModal';
-import Gauges from './src/components/Gauges';
 import LightControl from './src/components/LightControl';
+import Gauges from './src/components/Gauges';
 
 const mqtt = new MQTTService();
 
@@ -29,28 +29,20 @@ export default function App() {
 
   const startConnection = () => {
     setShowError(false);
-
     mqtt.connect(
       mqttConfig,
       (topic, message) => {
-        if (topic === 'casa/temp') {
-          setTemp(parseFloat(message));
-        } else if (topic === 'casa/umid') {
-          setHum(parseFloat(message));
-        } else if (topic === 'casa/luz') {
-          setIsLightOn(message === '1');
-        }
+        if (topic === 'casa/temp') setTemp(parseFloat(message));
+        if (topic === 'casa/umid') setHum(parseFloat(message));
+        if (topic === 'casa/luz') setIsLightOn(message === "1");
       },
       () => {
         setIsConnected(true);
-
         mqtt.subscribe('casa/temp');
         mqtt.subscribe('casa/umid');
         mqtt.subscribe('casa/luz');
       },
       (err) => {
-        console.log(err);
-
         setIsConnected(false);
         setShowError(true);
       }
@@ -58,7 +50,7 @@ export default function App() {
   };
 
   const toggleLight = () => {
-    const newState = isLightOn ? '0' : '1';
+    const newState = isLightOn ? "0" : "1";
     mqtt.publish('casa/luz', newState);
   };
 
@@ -66,10 +58,7 @@ export default function App() {
     <View style={styles.container}>
       <Text style={styles.header}>Smart Home IoT</Text>
 
-      <LightControl
-        isLightOn={isLightOn}
-        onToggle={toggleLight}
-      />
+      <LightControl isLightOn={isLightOn} onToggle={toggleLight} />
 
       <Gauges temp={temp} hum={hum} />
 
@@ -89,7 +78,6 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
   },
-
   header: {
     color: '#FFF',
     fontSize: 24,

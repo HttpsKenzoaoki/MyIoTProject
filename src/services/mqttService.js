@@ -1,51 +1,48 @@
-import init from 'react-native-mqtt';
-import sqlite from 'expo-sqlite';
-
+import init from 'react_native_mqtt';
+import { AsyncStorage } from '@react-native-async-storage/async-storage';
 
 init({
-    size: 10000,
-    storageBackend: sqlite,
-    defaultExpires: 1000 * 3600 *24,
-    enableCache: true,
-    sync: {},
+  size: 10000,
+  storageBackend: AsyncStorage,
+  defaultExpires: 1000 * 3600 * 24,
+  enableCache: true,
+  sync: {},
 });
 
-
-export default class MqttService {
+export default class MQTTService {
   constructor() {
     this.client = null;
-  } 
+  }
 
+  connect(config, onMessage, onConnect, onFailure) {
+    const { host, port, path, user, pass, clientId } = config;
 
-connect(configureLayoutAnimationBatch, onmessage, onConnect, onFailure) {
- const { host, port, path, user, pass, clientID } = config;
+    this.client = new Paho.MQTT.Client(host, port, path, clientId);
 
- this.client = new Paho.MQTT.Client(host, port, path, clientID);
+    this.client.onMessageArrived = (message) => {
+      onMessage(message.destinationName, message.payloadString);
+    };
 
- this.client.onMessageArrived = (message) => {
-    onMessage(message.destinationName, message.payloadString);
- };
+    const options = {
+      userName: user,
+      password: pass,
+      useSSL: true,
+      onSuccess: onConnect,
+      onFailure: onFailure,
+      timeout: 3,
+      keepAliveInterval: 60,
+    };
 
- const options = {
-    userName: user,
-    passWord: pass,
-    useSSL: true,
-    onSuccess: onConnect,
-    onFailure: onFailure,
-    timeout: 3,
-    keepAliceInterval:60,
- };
+    this.client.connect(options);
+  }
 
- this.client.connect(options);
-}
-
- subscribe(topic) {
+  subscribe(topic) {
     this.client.subscribe(topic);
- }
+  }
 
- publish(topic, message) {
+  publish(topic, message) {
     const msg = new Paho.MQTT.Message(message);
     msg.destinationName = topic;
     this.client.send(msg);
- }
+  }
 }
