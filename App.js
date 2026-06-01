@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import MQTTService from './src/services/mqttService';
 import StatusModal from './src/components/StatusModal';
 import LightControl from './src/components/LightControl';
 import Gauges from './src/components/Gauges';
+import MessageHistory from './src/components/MessageHistory';
 
 const mqtt = new MQTTService();
 
@@ -13,6 +14,7 @@ export default function App() {
   const [isLightOn, setIsLightOn] = useState(false);
   const [temp, setTemp] = useState(0);
   const [hum, setHum] = useState(0);
+  const [showHistory, setShowHistory] = useState(false);
 
   const mqttConfig = {
     host: process.env.EXPO_PUBLIC_MQTT_HOST,
@@ -55,19 +57,30 @@ export default function App() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Text style={styles.header}>Smart Home IoT</Text>
 
       <LightControl isLightOn={isLightOn} onToggle={toggleLight} />
 
       <Gauges temp={temp} hum={hum} />
 
+      <TouchableOpacity
+        style={styles.toggleButton}
+        onPress={() => setShowHistory(!showHistory)}
+      >
+        <Text style={styles.toggleButtonText}>
+          {showHistory ? '▼ Ocultar Histórico' : '▶ Mostrar Histórico'}
+        </Text>
+      </TouchableOpacity>
+
+      {showHistory && <MessageHistory />}
+
       <StatusModal
         visible={showError}
         onRetry={startConnection}
         onLater={() => setShowError(false)}
       />
-    </View>
+    </ScrollView>
   );
 }
 
@@ -76,7 +89,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#121212',
     padding: 20,
-    alignItems: 'center',
   },
   header: {
     color: '#FFF',
@@ -84,5 +96,19 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 40,
     marginBottom: 20,
+    textAlign: 'center',
+  },
+  toggleButton: {
+    backgroundColor: '#2196F3',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginVertical: 15,
+  },
+  toggleButtonText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 });

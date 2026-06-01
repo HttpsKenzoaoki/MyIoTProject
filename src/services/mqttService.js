@@ -1,5 +1,6 @@
 import init from 'react_native_mqtt';
 import { AsyncStorage } from '@react-native-async-storage/async-storage';
+import StorageService from './storageService';
 
 init({
   size: 10000,
@@ -20,6 +21,7 @@ export default class MQTTService {
     this.client = new Paho.MQTT.Client(host, port, path, clientId);
 
     this.client.onMessageArrived = (message) => {
+      StorageService.saveMessage(message.destinationName, message.payloadString);
       onMessage(message.destinationName, message.payloadString);
     };
 
